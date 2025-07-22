@@ -36,3 +36,14 @@ def fib(n):
         - In Fibonnaci, before computing `fib(x)`, check if the value of `fib(x)` is already stored in the table.
             - If so... take value from the table instead of computing.
             - If not, compute it and then add it to the table of seen computations.
+
+- When to use memoization?
+    1. **Optimal Substructure**: A globally optimal solution can be found by combining optimal solutions to local subproblems.
+        - Example: `for x > 1, fib(x) = fib(x - 1) + fib(x - 2)`
+        - Solve the *smaller* subproblems to achieve the *larger* result. 
+        
+    2. **Overlapping Subproblems**: Finding an optimal solution involves solving the same problems multiple times.
+        - Example: `computing fib(x) multiple times`
+
+- What about the 0/1 Knapsack Problem?
+    - 
