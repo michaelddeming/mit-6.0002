@@ -157,4 +157,5 @@ def compare_cow_transport_algorithms():
     print(f"{round(percent_slower)}" + "%")
 
 
-compare_cow_transport_algorithms()
+if __name__ == "__main__":
+    compare_cow_transport_algorithms()
