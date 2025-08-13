@@ -1,8 +1,8 @@
 # 6.0002 Problem Set 5
 # Graph optimization
-# Name:
-# Collaborators:
-# Time:
+# Name: Michael Deming
+# Collaborators: YouTube/Twitch Chat
+# Time: 3-4 hours.
 
 #
 # Finding shortest paths through MIT buildings
@@ -79,22 +79,20 @@ def load_map(map_filename):
 # Problem 2c: Testing load_map
 # Include the lines used to test load_map below, but comment them out
 
-loaded_map = load_map("problem_sets/problem_set_2/test_load_map.txt")
-print(loaded_map)
-
-#
 # Problem 3: Finding the Shorest Path using Optimized Search Method
 #
 # Problem 3a: Objective function
 #
 # What is the objective function for this problem? What are the constraints?
 #
-# Answer:
-#
+# Answer: 
+#   - Objective Function: Find the shortest path bewteen any given set of buildings on MIT campus.
+#   - Constraints: Limited by a set amount of time spend traveling outdoors.
+
+# 
 
 # Problem 3b: Implement get_best_path
-def get_best_path(digraph, start, end, path, max_dist_outdoors, best_dist,
-                  best_path):
+def get_best_path(digraph: Digraph, start: str, end: str, path, max_dist_outdoors, best_dist, best_path):
     """
     Finds the shortest path between buildings subject to constraints.
 
@@ -127,8 +125,45 @@ def get_best_path(digraph, start, end, path, max_dist_outdoors, best_dist,
         If there exists no path that satisfies max_total_dist and
         max_dist_outdoors constraints, then return None.
     """
-    # TODO
-    pass
+
+    # Step 1: Add current building to the path
+    if start not in path[0]:
+        path[0].append(start)
+    
+    # Step 2: If start == end, we have reached our goal
+    if start == end:
+        return (path[0][:], path[1])
+        
+    # Step 3: Loop over each edge starting from 'start'
+    current = Node(start)
+    for edge in digraph.edges.get(current.__hash__()):
+        next_start_node = edge.dest.name
+        total_time_so_far = path[1] + edge.total_distance
+        outdoor_time_so_far = path[2] + edge.outdoor_distance
+
+        # dont allow cycles
+        if next_start_node in path[0]:
+            continue
+        # dont allow exceeded outdoor time
+        if outdoor_time_so_far > max_dist_outdoors:
+            continue
+        # skip if distance so far is greater than best_dist found
+        if best_dist is not None and total_time_so_far >= best_dist:
+            continue
+
+        
+        new_path = [path[0] + [next_start_node], total_time_so_far, outdoor_time_so_far]
+        res_path, res_total = get_best_path(digraph=digraph, start=next_start_node, end=end, path=new_path, max_dist_outdoors=max_dist_outdoors,best_dist=best_dist, best_path=best_path)
+
+        if res_path and (best_dist is None or res_total < best_dist):
+                best_path = res_path
+                best_dist = res_total
+    if best_path == []:
+        return None, None
+    return (best_path, best_dist)
+
+
+            
 
 
 # Problem 3c: Implement directed_dfs
@@ -161,9 +196,17 @@ def directed_dfs(digraph, start, end, max_total_dist, max_dist_outdoors):
         max_dist_outdoors constraints, then raises a ValueError.
     """
     # TODO
-    pass
-
-
+    path, dist = get_best_path(digraph=digraph,
+                               start=start,
+                               end=end,
+                               path=[[],0,0],
+                               max_dist_outdoors=max_dist_outdoors,
+                               best_dist=max_total_dist,
+                               best_path=[])
+    
+    if path is None:
+        raise ValueError("DFSError: Path is None. No valid path.")
+    return path
 # ================================================================
 # Begin tests -- you do not need to modify anything below this line
 # ================================================================
@@ -172,7 +215,7 @@ class Ps2Test(unittest.TestCase):
     LARGE_DIST = 99999
 
     def setUp(self):
-        self.graph = load_map("mit_map.txt")
+        self.graph = load_map("problem_sets/problem_set_2/mit_map.txt")
 
     def test_load_map_basic(self):
         self.assertTrue(isinstance(self.graph, Digraph))
@@ -248,5 +291,5 @@ class Ps2Test(unittest.TestCase):
         self._test_impossible_path('10', '32', total_dist=100)
 
 
-# if __name__ == "__main__":
-#     unittest.main()
+if __name__ == "__main__":
+    unittest.main()
