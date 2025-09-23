@@ -218,7 +218,7 @@ class Robot(object):
     Subclasses of Robot should provide movement strategies by implementing
     update_position_and_clean, which simulates a single time-step.
     """
-    def __init__(self, room, speed, capacity):
+    def __init__(self, room: RectangularRoom, speed, capacity):
         """
         Initializes a Robot with the given speed and given cleaning capacity in the 
         specified room. The robot initially has a random direction and a random 
@@ -233,6 +233,7 @@ class Robot(object):
         self.direction = random.uniform(0, 360)
         self.speed = speed
         self.capacity = capacity
+        self.room = room
         # raise NotImplementedError
 
     def get_robot_position(self):
@@ -416,12 +417,35 @@ class StandardRobot(Robot):
         Move the robot to a new random position (if the new position is invalid, 
         rotate once to a random new direction, and stay stationary) and clean the dirt on the tile
         by its given capacity. 
+
+        WARNING WARNING WARNING DOCSTRING DOES NOT MATCH THE PDF Prob 3 Instructions. See PDF for implementation details:
+
+            - Calculate what the new position for the robot would be if it moved straight in its current direction at its given speed. 
+            - If that is a valid position, move there and then clean the tile corresponding to that position by the robot's capacity. The position is valid if it is in the room and if it is unfurnished. Do not worry about the robot's path in between the old position and the new position and whether there is furniture in that path.
+            - Otherwise, rotate the robot to be pointing in a random new direction. Don't clean the current tile or move to a different tile.
         """
-        raise NotImplementedError
+        # get the current position of the robot
+        curr_position = self.get_robot_position()
+        # attempt to move the robot to a new position in the current facing direction
+        attempted_position = curr_position.get_new_position(self.get_robot_direction(), self.speed)
+        # if attempted pos not in the room or funished furnished -> get a new random direction and assign to robot
+        if not self.room.is_position_valid(attempted_position):
+            rand_direction = random.uniform(0, 360)
+            self.set_robot_direction(rand_direction)
+        else:
+            self.set_robot_position(attempted_position)
+            self.room.clean_tile_at_position(self.get_robot_position(), self.capacity)
+
+
+
+
+
+        
+        
 
 # Uncomment this line to see your implementation of StandardRobot in action!
-#test_robot_movement(StandardRobot, EmptyRoom)
-#test_robot_movement(StandardRobot, FurnishedRoom)
+# test_robot_movement(StandardRobot, EmptyRoom)
+# test_robot_movement(StandardRobot, FurnishedRoom)
 
 # === Problem 4
 class FaultyRobot(Robot):
@@ -461,7 +485,19 @@ class FaultyRobot(Robot):
         StandardRobot at this time-step (checking if it can move to a new position,
         move there if it can, pick a new direction and stay stationary if it can't)
         """
-        raise NotImplementedError
+        rand_dir = random.uniform(0, 360)
+        if self.gets_faulty():
+            self.set_robot_direction(rand_dir)
+        else:
+            curr_pos = self.get_robot_position()
+            attempt_pos = curr_pos.get_new_position(self.get_robot_direction(), self.speed)
+            if self.room.is_position_valid(attempt_pos):
+                self.set_robot_position(attempt_pos)
+                self.room.clean_tile_at_position(self.get_robot_position(), self.capacity)
+            else:
+                self.set_robot_direction(rand_dir)
+
+
         
     
 #test_robot_movement(FaultyRobot, EmptyRoom)
