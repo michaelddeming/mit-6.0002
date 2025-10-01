@@ -503,8 +503,7 @@ class FaultyRobot(Robot):
 #test_robot_movement(FaultyRobot, EmptyRoom)
 
 # === Problem 5
-def run_simulation(num_robots, speed, capacity, width, height, dirt_amount, min_coverage, num_trials,
-                  robot_type):
+def run_simulation(num_robots, speed, capacity, width, height, dirt_amount, min_coverage, num_trials, robot_type):
     """
     Runs num_trials trials of the simulation and returns the mean number of
     time-steps needed to clean the fraction min_coverage of the room.
@@ -524,9 +523,21 @@ def run_simulation(num_robots, speed, capacity, width, height, dirt_amount, min_
     robot_type: class of robot to be instantiated (e.g. StandardRobot or
                 FaultyRobot)
     """
-    raise NotImplementedError
+    counts = []
+    for trial in range(num_trials):
+        room = EmptyRoom(width=width, height=height, dirt_amount=dirt_amount)
+        robots = [robot_type(speed=speed, capacity=capacity, room=room) for _ in range(num_robots)]
 
+        clean_tile_ratio = 0
+        count = 0
+        while min_coverage > clean_tile_ratio:
+            for robot in robots:
+                robot.update_position_and_clean()
+            count += 1
+            clean_tile_ratio = (room.get_num_cleaned_tiles() / room.get_num_tiles())
 
+        counts.append(count)
+    return (sum(counts) / len(counts))
 # print ('avg time steps: ' + str(run_simulation(1, 1.0, 1, 5, 5, 3, 1.0, 50, StandardRobot)))
 # print ('avg time steps: ' + str(run_simulation(1, 1.0, 1, 10, 10, 3, 0.8, 50, StandardRobot)))
 # print ('avg time steps: ' + str(run_simulation(1, 1.0, 1, 10, 10, 3, 0.9, 50, StandardRobot)))
@@ -539,12 +550,14 @@ def run_simulation(num_robots, speed, capacity, width, height, dirt_amount, min_
 #
 # 1)How does the performance of the two robot types compare when cleaning 80%
 #       of a 20x20 room?
-#
+#   
+#  Due to FaultyRobot having a get_faulty probability of 0.15 or 15% faulty, it is not very likely that the robot is faulty. Thus we see a similar coorelation between the two robots for these simulations.
 #
 # 2) How does the performance of the two robot types compare when two of each
 #       robot cleans 80% of rooms with dimensions 
 #       10x30, 20x15, 25x12, and 50x6?
-#
+#       
+#       As the aspect ratio increases past roughly 1.5–2, the room becomes increasingly narrow. In this configuration, the robot’s movement shifts from primarily radial to more linear along the long axis. While this allows the robot to traverse areas that would be less frequently visited in a square room, it also increases the likelihood of revisiting previously cleaned areas, reducing efficiency and increasing total cleaning time.
 #
 
 def show_plot_compare_strategies(title, x_label, y_label):
@@ -575,7 +588,7 @@ def show_plot_room_shape(title, x_label, y_label):
     times1 = []
     times2 = []
     for width in [10, 20, 25, 50]:
-        height = 300/width
+        height = int(round(300/width))
         print ("Plotting cleaning time for a room of width:", width, "by height:", height)
         aspect_ratios.append(float(width) / height)
         times1.append(run_simulation(2, 1.0, 1, width, height, 3, 0.8, 200, StandardRobot))
@@ -589,5 +602,5 @@ def show_plot_room_shape(title, x_label, y_label):
     pylab.show()
 
 
-#show_plot_compare_strategies('Time to clean 80% of a 20x20 room, for various numbers of robots','Number of robots','Time / steps')
-#show_plot_room_shape('Time to clean 80% of a 300-tile room for various room shapes','Aspect Ratio', 'Time / steps')
+# show_plot_compare_strategies('Time to clean 80% of a 20x20 room, for various numbers of robots','Number of robots','Time / steps')
+show_plot_room_shape('Time to clean 80% of a 300-tile room for various room shapes','Aspect Ratio', 'Time / steps')

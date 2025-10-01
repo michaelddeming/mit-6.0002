@@ -1,7 +1,8 @@
 
 from ps3 import RectangularRoom, EmptyRoom, FurnishedRoom
 from ps3 import Position
-
+from ps3 import run_simulation
+from ps3 import StandardRobot
 
 pos = Position(1,1)
 """Problem 1"""
@@ -38,3 +39,4 @@ pos = Position(1,1)
 # print(fur_room.get_random_position())
 ### ------------------------------------------ ###
 
+run_simulation(10, 1, 10, 5, 5, 1, .5, 5, StandardRobot)
